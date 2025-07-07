@@ -1,0 +1,20 @@
+{
+  "name": "slay-backend",
+  "version": "1.0.0",
+  "description": "Backend API for $SLAY Y2K Image Transformation",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.1",
+    "openai": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
