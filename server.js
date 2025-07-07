@@ -1,4 +1,4 @@
-// $SLAY Backend - Y2K Girly AI Transformation API ✨💖
+// $SLAY Backend - Y2K Girly AI Transformation API âś¨đź’–
 import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
@@ -12,9 +12,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-// Middleware
+// Middleware - Allow ALL origins for now
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://yourdomain.com'], // Add your actual domain here
+  origin: true, // Allow all origins
   credentials: true
 }))
 app.use(express.json())
@@ -30,15 +30,15 @@ const upload = multer({
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
-    status: '✨ $SLAY Backend is running! Ready to girlify! 💖✨',
+    status: 'âś¨ $SLAY Backend is running! Ready to girlify! đź’–âś¨',
     timestamp: new Date().toISOString()
   })
 })
 
 app.get('/api/health', (req, res) => {
   res.json({ 
-    status: 'Server is running! Ready to girlify! 💖✨',
-    openai: openai.apiKey ? 'Connected ✅' : 'Not configured ❌'
+    status: 'Server is running! Ready to girlify! đź’–âś¨',
+    openai: process.env.OPENAI_API_KEY ? 'Connected âś…' : 'Not configured âťŚ'
   })
 })
 
@@ -52,15 +52,15 @@ app.post('/api/girlify', upload.single('image'), async (req, res) => {
       })
     }
 
-    console.log('🎀 Received image for girlification:', req.file.originalname)
-    console.log('📁 File size:', req.file.size, 'bytes')
-    console.log('🎨 File type:', req.file.mimetype)
+    console.log('đźŽ€ Received image for girlification:', req.file.originalname)
+    console.log('đź“ File size:', req.file.size, 'bytes')
+    console.log('đźŽ¨ File type:', req.file.mimetype)
 
     // Convert buffer to base64 for OpenAI API
     const inputBase64 = req.file.buffer.toString('base64')
     const inputDataUrl = `data:${req.file.mimetype};base64,${inputBase64}`
 
-    console.log('👁️ Analyzing uploaded image with GPT-4 Vision...')
+    console.log('đź‘ď¸Ź Analyzing uploaded image with GPT-4 Vision...')
     
     // Universal image analysis for Y2K transformation - works on ANYTHING!
     const visionResponse = await openai.chat.completions.create({
@@ -77,7 +77,7 @@ app.post('/api/girlify', upload.single('image'), async (req, res) => {
               type: "image_url",
               image_url: {
                 url: inputDataUrl,
-                detail: "high" // Using high detail for better position/pose detection
+                detail: "high"
               }
             }
           ]
@@ -87,9 +87,9 @@ app.post('/api/girlify', upload.single('image'), async (req, res) => {
     })
 
     const imageAnalysis = visionResponse.choices[0].message.content
-    console.log('🔍 Image analysis:', imageAnalysis)
+    console.log('đź”Ť Image analysis:', imageAnalysis)
 
-    console.log('🔄 Generating Y2K girly transformation with DALL-E 3...')
+    console.log('đź”„ Generating Y2K girly transformation with DALL-E 3...')
     
     // Create adaptive Y2K transformation prompt that works for ANY subject
     const detailedPrompt = `Transform this subject into Y2K girly glam based on: "${imageAnalysis}".
@@ -116,8 +116,8 @@ Style: High quality, detailed, vibrant Y2K aesthetic, super girly and cute with 
       quality: "hd"
     })
 
-    console.log('✨ AI girlification complete!')
-    console.log('🖼️ Generated image URL:', response.data[0].url)
+    console.log('âś¨ AI girlification complete!')
+    console.log('đź–Ľď¸Ź Generated image URL:', response.data[0].url)
 
     // Download the image from OpenAI and serve it through our server to avoid CORS
     const imageResponse = await fetch(response.data[0].url)
@@ -127,38 +127,38 @@ Style: High quality, detailed, vibrant Y2K aesthetic, super girly and cute with 
     const outputBase64 = Buffer.from(imageBuffer).toString('base64')
     const outputDataUrl = `data:image/png;base64,${outputBase64}`
 
-    console.log('📸 Image downloaded and converted to data URL!')
+    console.log('đź“¸ Image downloaded and converted to data URL!')
 
     res.json({
       success: true,
-      imageUrl: outputDataUrl, // Send as data URL to avoid CORS issues
-      message: "Slay queen! Your image has been girlified! 💖✨"
+      imageUrl: outputDataUrl,
+      message: "Slay queen! Your image has been girlified! đź’–âś¨"
     })
 
   } catch (error) {
-    console.error('❌ Error girlifying image:', error)
-    console.error('❌ Error details:', error.response?.data || error.message)
+    console.error('âťŚ Error girlifying image:', error)
+    console.error('âťŚ Error details:', error.response?.data || error.message)
 
     res.status(500).json({
       success: false,
       error: 'Failed to girlify image',
       details: error.message,
-      message: "Oops! Something went wrong with the AI magic! Try again bestie 💕"
+      message: "Oops! Something went wrong with the AI magic! Try again bestie đź’•"
     })
   }
 })
 
 // Global error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error)
+  console.error('âťŚ Uncaught Exception:', error)
 })
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason)
+  console.error('âťŚ Unhandled Rejection at:', promise, 'reason:', reason)
 })
 
 app.listen(port, () => {
-  console.log(`🎀 $SLAY Backend running on port ${port}`)
-  console.log('✨ Ready to transform images with Y2K magic! ✨')
-  console.log('🔑 OpenAI API Key configured:', process.env.OPENAI_API_KEY ? 'Yes ✅' : 'No ❌')
+  console.log(`đźŽ€ $SLAY Backend running on port ${port}`)
+  console.log('âś¨ Ready to transform images with Y2K magic! âś¨')
+  console.log('đź”‘ OpenAI API Key configured:', process.env.OPENAI_API_KEY ? 'Yes âś…' : 'No âťŚ')
 })
