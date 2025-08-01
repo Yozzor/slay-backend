@@ -1,164 +1,343 @@
-// $SLAY Backend - Y2K Girly AI Transformation API âś¨đź’–
-import express from 'express'
-import cors from 'cors'
-import multer from 'multer'
-import OpenAI from 'openai'
+// ---------------------------------------------------------------------------
+//  $SLAY Backend â€“ Y2K Avatar Generator API  (Node â‰Ą18, ESM)
+// ---------------------------------------------------------------------------
+import express from 'express';
+import cors    from 'cors';
+import multer  from 'multer';
+import process from 'process';
 
-const app = express()
-const port = process.env.PORT || 3001
+// ---------------------------------------------------------------------------
+// 1) CONFIG
+// ---------------------------------------------------------------------------
+const PORT = process.env.PORT || 3001;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Initialize OpenAI client with environment variable
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
+  console.error('âťŚ Missing OPENAI_API_KEY environment variable');
+  process.exit(1);
+}
 
-// Middleware - Allow ALL origins for now
-app.use(cors({
-  origin: true, // Allow all origins
-  credentials: true
-}))
-app.use(express.json())
+console.log('âś… OpenAI API Key loaded');
 
-// Configure multer for file uploads
+// ---------------------------------------------------------------------------
+// 2) EXPRESS SETUP
+// ---------------------------------------------------------------------------
+const app = express();
+
+// Multer setup for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
   }
-})
+});
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'âś¨ $SLAY Backend is running! Ready to girlify! đź’–âś¨',
-    timestamp: new Date().toISOString()
-  })
-})
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'https://localhost:5173',
+    'https://localhost:5174',
+    'https://localhost:5175',
+    'http://localhost:3000',
+    'https://localhost:3000',
+    'http://localhost:5182',
+    'https://localhost:5182',
+    'http://localhost:5183',
+    'https://localhost:5183',
+    'https://slay-backend-0xg4.onrender.com',
+    'https://slaycoin.club',
+    'http://slaycoin.club',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'https://127.0.0.1:5173',
+    'https://127.0.0.1:5174',
+    'https://127.0.0.1:5175'
+  ],
+  credentials: true
+}));
 
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'Server is running! Ready to girlify! đź’–âś¨',
-    openai: process.env.OPENAI_API_KEY ? 'Connected âś…' : 'Not configured âťŚ'
-  })
-})
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static('public'));
 
-// AI Girlify endpoint
-app.post('/api/girlify', upload.single('image'), async (req, res) => {
+// ---------------------------------------------------------------------------
+// 3) OPENAI FETCH HELPERS
+// ---------------------------------------------------------------------------
+async function openaiFetch(endpoint, body) {
+  const url = `https://api.openai.com/v1${endpoint}`;
+  console.log(`đź”„ OpenAI API call: ${endpoint}`);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`âťŚ OpenAI API error (${response.status}):`, errorText);
+    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+
+
+// ---------------------------------------------------------------------------
+// 4) HEALTH CHECK
+// ---------------------------------------------------------------------------
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', model: 'gpt-image-1 available' });
+});
+
+// ---------------------------------------------------------------------------
+// 5) AVATAR GENERATOR ENDPOINT - Y2K Bratz Avatars (gpt-image-1 ONLY)
+// ---------------------------------------------------------------------------
+app.post('/api/generate-avatar', async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: 'No image file provided'
-      })
+    console.log('âś¨ Generating Y2K Bratz avatar...');
+
+    // Random Y2K features for variety
+    const hairStyles = [
+      'red bob hair with face-framing layers',
+      'long brown wavy hair',
+      'blonde straight hair with chunky highlights',
+      'black curly hair with volume',
+      'auburn hair with bangs',
+      'platinum blonde hair',
+      'dark brown hair with red streaks'
+    ];
+
+    const outfits = [
+      'paisley print halter top with gold jewelry',
+      'metallic silver crop top',
+      'butterfly print shirt',
+      'velvet brown top with chain necklace',
+      'sequined top with off-shoulder style',
+      'leopard print top',
+      'tie-dye crop top with low-cut style'
+    ];
+
+    const hair = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+    const outfit = outfits[Math.floor(Math.random() * outfits.length)];
+
+    // Your exact Y2K Bratz prompt
+    const prompt = `2D cartoon illustration with polished sticker-like finish and bold outlines: Y2K Bratz girl with ${hair}, big almond-shaped eyes with dramatic lashes and bold winged eyeliner, glossy overlined lips with a pout or smirk, smooth skin with light blush and glowy highlights, long acrylic nails (hot pink or red) posed in a peace sign, flirty pose with confident or sassy expression, wearing ${outfit}, background filled with soft sparkle overlays and pink hearts - dreamy and girly, color palette: warm tones, golds, reds, peaches, soft browns - no harsh shadows, clean rendering`;
+
+    console.log('âŹł Generating with gpt-image-1...');
+    console.log('đźŽ¨ Prompt:', prompt);
+
+    const imgResp = await openaiFetch('/images/generations', {
+      model: 'gpt-image-1',
+      prompt: prompt,
+      size: '1024x1024'
+    });
+
+    console.log('đź“ˇ API Response received');
+
+    // gpt-image-1 returns base64 for generations
+    const base64Data = imgResp.data?.[0]?.b64_json;
+    if (!base64Data) {
+      console.error('âťŚ No base64 data in response:', imgResp);
+      throw new Error('No base64 data returned from gpt-image-1');
     }
 
-    console.log('đźŽ€ Received image for girlification:', req.file.originalname)
-    console.log('đź“ File size:', req.file.size, 'bytes')
-    console.log('đźŽ¨ File type:', req.file.mimetype)
+    const dataUrl = `data:image/png;base64,${base64Data}`;
+    console.log('âś… Y2K Bratz avatar generated successfully!');
 
-    // Convert buffer to base64 for OpenAI API
-    const inputBase64 = req.file.buffer.toString('base64')
-    const inputDataUrl = `data:${req.file.mimetype};base64,${inputBase64}`
+    // Auto-save to database
+    const avatar = {
+      id: Date.now().toString(),
+      imageUrl: dataUrl,
+      createdAt: new Date().toISOString()
+    };
+    avatarDatabase.unshift(avatar);
+    if (avatarDatabase.length > 50) {
+      avatarDatabase = avatarDatabase.slice(0, 50);
+    }
+    console.log(`đź’ľ Avatar auto-saved to database. Total: ${avatarDatabase.length}`);
 
-    console.log('đź‘ď¸Ź Analyzing uploaded image with GPT-4 Vision...')
-    
-    // Universal image analysis for Y2K transformation - works on ANYTHING!
-    const visionResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Analyze this image for Y2K glam transformation. Identify: 1) WHAT is the main subject (person, animal, object, etc.), 2) POSITION/POSE (sitting, standing, lying, angle, orientation), 3) KEY FEATURES (colors, textures, distinctive elements), 4) SETTING/BACKGROUND. Be specific about the pose/position as this must be maintained. Describe in under 120 words for any subject type."
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: inputDataUrl,
-                detail: "high"
-              }
-            }
-          ]
-        }
-      ],
-      max_tokens: 200
-    })
+    res.json({ success: true, imageUrl: dataUrl });
 
-    const imageAnalysis = visionResponse.choices[0].message.content
-    console.log('đź”Ť Image analysis:', imageAnalysis)
+  } catch (err) {
+    console.error('âťŚ Avatar generation error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
-    console.log('đź”„ Generating Y2K girly transformation with DALL-E 3...')
-    
-    // Create adaptive Y2K transformation prompt that works for ANY subject
-    const detailedPrompt = `Transform this subject into Y2K girly glam based on: "${imageAnalysis}".
+// ---------------------------------------------------------------------------
+// 6) GIRLIFY ENDPOINT (alias for generate-avatar)
+// ---------------------------------------------------------------------------
+app.post('/api/girlify', async (req, res) => {
+  try {
+    console.log('âś¨ Girlify request received - generating Y2K Bratz avatar...');
 
-CRITICAL: Maintain the EXACT same position, pose, angle, and orientation as described.
+    // Random Y2K features for variety
+    const hairStyles = [
+      'red bob hair with face-framing layers',
+      'long brown wavy hair',
+      'blonde straight hair with chunky highlights',
+      'black curly hair with volume',
+      'auburn hair with bangs',
+      'platinum blonde hair',
+      'dark brown hair with red streaks'
+    ];
 
-Apply Y2K girly transformation appropriate to the subject:
+    const outfits = [
+      'paisley print halter top with gold jewelry',
+      'metallic silver crop top',
+      'butterfly print shirt',
+      'velvet brown top with chain necklace',
+      'sequined top with off-shoulder style',
+      'leopard print top',
+      'tie-dye crop top with low-cut style'
+    ];
 
-FOR PEOPLE: Glamorous Y2K makeup (sparkly lashes, glossy pink lips, shimmery eyeshadow), butterfly hair clips, chunky hoops, choker, metallic crop top, colorful hair streaks (pink/purple/blue).
+    const hair = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+    const outfit = outfits[Math.floor(Math.random() * outfits.length)];
 
-FOR ANIMALS: Glittery fur/feathers with pink and purple highlights, sparkly accessories (tiny butterfly clips, glittery collars, holographic elements), Y2K-style backgrounds.
+    // Your exact Y2K Bratz prompt
+    const prompt = `2D cartoon illustration with polished sticker-like finish and bold outlines: Y2K Bratz girl with ${hair}, big almond-shaped eyes with dramatic lashes and bold winged eyeliner, glossy overlined lips with a pout or smirk, smooth skin with light blush and glowy highlights, long acrylic nails (hot pink or red) posed in a peace sign, flirty pose with confident or sassy expression, wearing ${outfit}, background filled with soft sparkle overlays and pink hearts - dreamy and girly, color palette: warm tones, golds, reds, peaches, soft browns - no harsh shadows, clean rendering`;
 
-FOR OBJECTS: Holographic/iridescent surfaces, pink and purple color scheme, glittery textures, metallic finishes, Y2K decorative elements (butterflies, stars, hearts), sparkly embellishments.
+    console.log('âŹł Generating with gpt-image-1...');
+    console.log('đźŽ¨ Prompt:', prompt);
 
-UNIVERSAL Y2K ELEMENTS: Dreamy soft lighting with pink/purple glow, magical sparkles floating around, subtle holographic effects, Y2K pattern backgrounds (gradient mesh, butterflies, stars), maximum glitter and shine.
+    const imgResp = await openaiFetch('/images/generations', {
+      model: 'gpt-image-1',
+      prompt: prompt,
+      size: '1024x1024'
+    });
 
-Style: High quality, detailed, vibrant Y2K aesthetic, super girly and cute with maximum sparkle. Keep the subject recognizable but completely glammed up in Y2K style.`
+    console.log('đź“ˇ API Response received');
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: detailedPrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "hd"
-    })
+    // gpt-image-1 returns base64 for generations
+    const base64Data = imgResp.data?.[0]?.b64_json;
+    if (!base64Data) {
+      console.error('âťŚ No base64 data in response:', imgResp);
+      throw new Error('No base64 data returned from gpt-image-1');
+    }
 
-    console.log('âś¨ AI girlification complete!')
-    console.log('đź–Ľď¸Ź Generated image URL:', response.data[0].url)
+    const dataUrl = `data:image/png;base64,${base64Data}`;
+    console.log('âś… Y2K Bratz avatar generated successfully via girlify!');
 
-    // Download the image from OpenAI and serve it through our server to avoid CORS
-    const imageResponse = await fetch(response.data[0].url)
-    const imageBuffer = await imageResponse.arrayBuffer()
+    // Auto-save to database
+    const avatar = {
+      id: Date.now().toString(),
+      imageUrl: dataUrl,
+      createdAt: new Date().toISOString()
+    };
+    avatarDatabase.unshift(avatar);
+    if (avatarDatabase.length > 50) {
+      avatarDatabase = avatarDatabase.slice(0, 50);
+    }
+    console.log(`đź’ľ Girlify avatar auto-saved to database. Total: ${avatarDatabase.length}`);
 
-    // Convert to base64 for easy transfer
-    const outputBase64 = Buffer.from(imageBuffer).toString('base64')
-    const outputDataUrl = `data:image/png;base64,${outputBase64}`
+    res.json({ success: true, imageUrl: dataUrl });
 
-    console.log('đź“¸ Image downloaded and converted to data URL!')
+  } catch (err) {
+    console.error('âťŚ Girlify error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
-    res.json({
-      success: true,
-      imageUrl: outputDataUrl,
-      message: "Slay queen! Your image has been girlified! đź’–âś¨"
-    })
+// ---------------------------------------------------------------------------
+// 7) AVATAR DATABASE ENDPOINTS (In-Memory Storage for Development)
+// ---------------------------------------------------------------------------
+let avatarDatabase = []; // Simple in-memory storage for development
+
+// Save avatar to database
+app.post('/api/avatars', async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({ success: false, error: 'Image URL is required' });
+    }
+
+    const avatar = {
+      id: Date.now().toString(),
+      imageUrl: imageUrl,
+      createdAt: new Date().toISOString()
+    };
+
+    // Add to beginning of array (latest first)
+    avatarDatabase.unshift(avatar);
+
+    // Keep only last 50 avatars to prevent memory issues
+    if (avatarDatabase.length > 50) {
+      avatarDatabase = avatarDatabase.slice(0, 50);
+    }
+
+    console.log(`đź’ľ Avatar saved to database. Total: ${avatarDatabase.length}`);
+    res.json({ success: true, avatar });
 
   } catch (error) {
-    console.error('âťŚ Error girlifying image:', error)
-    console.error('âťŚ Error details:', error.response?.data || error.message)
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to girlify image',
-      details: error.message,
-      message: "Oops! Something went wrong with the AI magic! Try again bestie đź’•"
-    })
+    console.error('âťŚ Error saving avatar:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
-})
+});
 
-// Global error handlers to prevent crashes
-process.on('uncaughtException', (error) => {
-  console.error('âťŚ Uncaught Exception:', error)
-})
+// Get all avatars
+app.get('/api/avatars', (req, res) => {
+  try {
+    console.log(`đź“Š Fetching all avatars. Count: ${avatarDatabase.length}`);
+    res.json({ success: true, avatars: avatarDatabase });
+  } catch (error) {
+    console.error('âťŚ Error fetching avatars:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('âťŚ Unhandled Rejection at:', promise, 'reason:', reason)
-})
+// Get latest avatars
+app.get('/api/avatars/latest/:count', (req, res) => {
+  try {
+    const count = parseInt(req.params.count) || 10;
+    const latestAvatars = avatarDatabase.slice(0, count);
 
-app.listen(port, () => {
-  console.log(`đźŽ€ $SLAY Backend running on port ${port}`)
-  console.log('âś¨ Ready to transform images with Y2K magic! âś¨')
-  console.log('đź”‘ OpenAI API Key configured:', process.env.OPENAI_API_KEY ? 'Yes âś…' : 'No âťŚ')
-})
+    console.log(`đź“Š Fetching latest ${count} avatars. Found: ${latestAvatars.length}`);
+    res.json({ success: true, avatars: latestAvatars });
+  } catch (error) {
+    console.error('âťŚ Error fetching latest avatars:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get stats
+app.get('/api/stats', (req, res) => {
+  try {
+    const today = new Date().toDateString();
+    const todayCount = avatarDatabase.filter(avatar =>
+      new Date(avatar.createdAt).toDateString() === today
+    ).length;
+
+    const stats = {
+      total: avatarDatabase.length,
+      today: todayCount
+    };
+
+    console.log(`đź“Š Stats requested:`, stats);
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('âťŚ Error fetching stats:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 8) START SERVER
+// ---------------------------------------------------------------------------
+app.listen(PORT, () => {
+  console.log(`đźŽ€ $SLAY Backend running on port ${PORT}`);
+  console.log(`đźŚ Health check: http://localhost:${PORT}/api/health`);
+});
